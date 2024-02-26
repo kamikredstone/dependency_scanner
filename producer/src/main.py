@@ -1,10 +1,11 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
-from utils import publish_to_redis, handle_file_submission, get_redis
+from src.utils import handle_file_submission
+from src.redis_utils import get_redis
 from src import REDIS_CONSTS
-
 
 app = FastAPI()
 
+## TODO: Write middleware for exception handling
 @app.post("/submit/")
 async def submit_file(data: str = None, file: UploadFile = File(None)):
     redis = await get_redis(REDIS_CONSTS.REDIS_HOST, REDIS_CONSTS.REDIS_PORT, REDIS_CONSTS.REDIS_PASSWORD)
