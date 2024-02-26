@@ -9,7 +9,7 @@ class MockUploadFile:
     async def read(self):
         return self.content
     
-    def seek(self, offset):
+    async def seek(self, offset):
         return self.content[offset]
 
 class TestHandleFileSubmission:
