@@ -18,3 +18,7 @@ The scanner will use caching in redis to reduce the amount of requests to the NI
 
 2. Still curl, just a file this time:
 > curl -X POST -F 'file=@/path/to/requirements.txt' http://localhost:8000/submit/
+
+### How does it look like on redis?
+When we submit a requirements.txt file to redis, it will save the value like this:
+> "annotated-types==0.6.0\nanyio==4.3.0\nasync-timeout==4.0.3\nclick==8.1.7\nexceptiongroup==1.2.0\nfastapi==0.110.0\nh11==0.14.0\nidna==3.6\niniconfig==2.0.0\npackaging==23.2\npluggy==1.4.0\npydantic==2.6.2\npydantic_core==2.16.3\npytest==8.0.2\npytest-asyncio==0.23.5\npython-multipart==0.0.9\nredis==5.0.1\nsniffio==1.3.1\nstarlette==0.36.3\ntomli==2.0.1\ntyping_extensions==4.10.0\nuvicorn==0.27.1\n"

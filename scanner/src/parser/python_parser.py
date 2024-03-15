@@ -13,5 +13,6 @@ class PythonParser(Parser):
         Parses the returned json from the pypi API endpoint which is:
         https://pypi.org/pypi/<dependency_name>/<dependency_version>/json
         """
+        pass
 
             
