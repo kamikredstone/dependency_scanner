@@ -11,3 +11,10 @@ The app will work as follows:
 4. Scanner will pick the task from the stream, and will output the result to a frontend endpoint (/scans).
 
 The scanner will use caching in redis to reduce the amount of requests to the NIST vuln DB, and will save output as key-value pairs of task ID and output in MongoDB. 
+
+## How to submit requests to the producer?
+1. Using curl, some string data:
+> curl -X POST -F 'data=some data' http://localhost:8000/submit/
+
+2. Still curl, just a file this time:
+> curl -X POST -F 'file=@/path/to/requirements.txt' http://localhost:8000/submit/
