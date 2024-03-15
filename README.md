@@ -1,14 +1,23 @@
 # What is this?
 
-This project is a dependency scanner, it will consist of 2 micro-services: A producer and the scanner itself.
+This project is a dependency scanner, currently for python, in the future for more.
 
 ## Architecture
+
+This project consists of 3 microservices:
+1. A producer, which takes in user requests and publishes them as message on a redis stream.
+2. A consumer, which checks for new messages on the stream and processes them as needed.
+
+As I mentioned, this project utilises Redis streams, and will write the processed data to MongoDB.
+
 
 The app will work as follows:
 1. The user submits a manifest file through a specific end point - it can be either a file or text.
 2. The endpoint (/submit) will be handled by the producer.
 3. Producer will publish the input to a redis stream and assign it a unique task id.
-4. Scanner will pick the task from the stream, and will output the result to a frontend endpoint (/scans).
+4. Scanner will pick the task from the stream, will process it, and save the processed data in MongoDB.
+5. Producer will publish processed data on the /scans endpoint in a table of somesort.
+
 
 The scanner will use caching in redis to reduce the amount of requests to the NIST vuln DB, and will save output as key-value pairs of task ID and output in MongoDB. 
 
