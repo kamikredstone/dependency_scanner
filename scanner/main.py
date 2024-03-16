@@ -1,5 +1,4 @@
 import logging, sys
-import asyncio
 from src import REDIS_CONSTS, MONGO_CONSTS
 from src.redis_utils import get_redis, ensure_consumer_group_exists, pull_job_from_stream
 from src.mongo_utils import get_mongo_collection, process_and_save_message
@@ -51,13 +50,13 @@ def listen_for_messages(stream, group_name, consumer_name, mongo_uri, db_name, c
 
 if __name__ == "__main__":
     mongo_uri = f"mongodb://{MONGO_CONSTS['MONGO_HOST']}:{MONGO_CONSTS['MONGO_PORT']}"
-    asyncio.run(listen_for_messages(REDIS_CONSTS['REDIS_STREAM_NAME'], 
+    listen_for_messages(REDIS_CONSTS['REDIS_STREAM_NAME'], 
                                     REDIS_CONSTS['REDIS_GROUP_NAME'], 
                                     REDIS_CONSTS['REDIS_CONSUMER_NAME'], 
                                     mongo_uri, 
                                     MONGO_CONSTS['MONGO_DB'], 
                                     MONGO_CONSTS['MONGO_COLLECTION'], 
                                     REDIS_CONSTS['REDIS_HOST'], 
-                                    REDIS_CONSTS['REDIS_PORT'], 0))
+                                    REDIS_CONSTS['REDIS_PORT'], 0)
 
 
