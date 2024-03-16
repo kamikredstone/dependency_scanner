@@ -1,12 +1,5 @@
 import redis
-import sys, logging
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-handler = logging.StreamHandler(sys.stdout)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+from src.utils import SingletonLogger
 
 async def publish_to_redis(redis_connection_pool, stream, key, content):
     try:
@@ -25,6 +18,7 @@ async def get_redis(host: str, port: int, password: str = None) -> redis.Connect
     return pool
 
 def initialize_stream(redis_connection, stream_name):
+    logger = SingletonLogger()
     try:
         latest_entry = redis_connection.xrevrange(stream_name, max='+', min='-', count=1)
         if not latest_entry:

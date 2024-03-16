@@ -1,16 +1,9 @@
-import logging, sys
 from src import REDIS_CONSTS, MONGO_CONSTS
 from src.redis_utils import get_redis, ensure_consumer_group_exists, pull_job_from_stream
 from src.mongo_utils import get_mongo_collection, process_and_save_message
 from pymongo import MongoClient
 import redis
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-handler = logging.StreamHandler(sys.stdout)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+from src.utils import SingletonLogger
 
 def ensure_str(input_var):
     if isinstance(input_var, bytes):
@@ -18,6 +11,7 @@ def ensure_str(input_var):
     return input_var
 
 def listen_for_messages(stream, group_name, consumer_name, mongo_uri, db_name, collection_name, redis_host, redis_port, redis_db):
+    logger = SingletonLogger()
     redis_pool = get_redis(redis_host, redis_port, REDIS_CONSTS['REDIS_PASSWORD'])
     redis_con = redis.Redis(connection_pool=redis_pool)
     mongo_client = MongoClient(mongo_uri)
