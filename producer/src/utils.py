@@ -9,21 +9,38 @@ class SingletonLogger:
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-            cls._instance.logger = logging.getLogger('scanner')
+            # Directly set attributes on the instance to avoid recursion
+            object.__setattr__(cls._instance, 'logger', logging.getLogger('producer'))
             cls._instance.logger.setLevel(logging.DEBUG)
             formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-            cls._instance.logger.setFormatter(formatter)
-            cls._instance.logger.addHandler(logging.StreamHandler(sys.stdout))
+            handler = logging.StreamHandler(sys.stdout)
+            handler.setFormatter(formatter)
+            cls._instance.logger.addHandler(handler)
         return cls._instance
 
     def __getattr__(self, name):
-        return getattr(self.logger, name)
+        # Safely delegate attribute access to the logger
+        return getattr(object.__getattribute__(self, 'logger'), name)
 
     def __setattr__(self, name, value):
-        setattr(self.logger, name, value)
+        # Safely delegate attribute setting to the logger
+        setattr(object.__getattribute__(self, 'logger'), name, value)
 
     def __delattr__(self, name):
-        delattr(self.logger, name)
+        # Safely delegate attribute deletion to the logger
+        delattr(object.__getattribute__(self, 'logger'), name)
+
+def detect_programming_language(filename: str) -> str:
+    # Mapping of file names to programming languages
+    language_mapping = {
+        'requirements.txt': 'python',
+        'package.json': 'javascript',
+        # Add more mappings here as needed
+    }
+    for file_identifier, language in language_mapping.items():
+        if filename.endswith(file_identifier):
+            return language
+    return 'unknown'  # Default if no match is found
 
 
 async def handle_file_submission(request: Request = None) -> tuple[str, bytes]:
@@ -40,10 +57,13 @@ async def handle_file_submission(request: Request = None) -> tuple[str, bytes]:
     
     key = str(uuid.uuid4())
     if data:
+        # TODO: Add detection for language in case of simple string data
         logger.info('Received data, starting processing...')
-        content = data.encode()
+        content = {'data': data.encode()}
+        language = 'data'
     elif file:
-        logger.debug('Received file, starting processing...')
+        logger.debug(f'Received file {file.filename}, starting processing...')
         await file.seek(0)
         content = await file.read()
-    return key, content
+        language = detect_programming_language(file.filename)
+    return key, {language: content}

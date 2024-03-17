@@ -1,11 +1,21 @@
 import redis
+import json
 from src.utils import SingletonLogger
+import base64
 
-async def publish_to_redis(redis_connection_pool, stream, key, content):
+async def publish_to_redis(redis_connection_pool, stream, key, content: dict):
     try:
         r = redis.Redis(connection_pool=redis_connection_pool)
+        decoded_content = {}
+        for lang, data in content.items():
+            if isinstance(data, bytes):
+                decoded_data = data.decode('utf-8')
+                decoded_content[lang] = decoded_data
+            else:
+                decoded_content[lang] = data
+
         with r.pipeline() as pipe:
-            pipe.xadd(stream, {key: content})
+            pipe.xadd(stream, {key: json.dumps(decoded_content)})
             pipe.execute()
     except Exception as e:
         raise e

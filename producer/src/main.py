@@ -25,6 +25,7 @@ async def submit_file(request: Request = None):
         logger.info(f"Published file with key: {key} to redis stream: {REDIS_CONSTS['REDIS_STREAM_NAME']}")
     except Exception as e:
         logger.error(f"Error occurred while processing file submission: {e}")
+        logger.exception("Exception stack trace:")
         raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
     finally:
         r.close()

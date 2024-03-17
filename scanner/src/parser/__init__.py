@@ -1,8 +1,6 @@
-from pydantic import BaseModel
 from abc import ABC, abstractmethod
-from fastapi import File
 
-class Parser(BaseModel):
+class Parser(ABC):
 
     @abstractmethod
     def parse_dependencies(self) -> dict:

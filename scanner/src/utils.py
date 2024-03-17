@@ -6,18 +6,20 @@ class SingletonLogger:
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-            cls._instance.logger = logging.getLogger('scanner')
+            # Directly set attributes on the instance to avoid recursion
+            object.__setattr__(cls._instance, 'logger', logging.getLogger('scanner'))
             cls._instance.logger.setLevel(logging.DEBUG)
             formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-            cls._instance.logger.setFormatter(formatter)
-            cls._instance.logger.addHandler(logging.StreamHandler(sys.stdout))
+            handler = logging.StreamHandler(sys.stdout)
+            handler.setFormatter(formatter)
+            cls._instance.logger.addHandler(handler)
         return cls._instance
 
     def __getattr__(self, name):
-        return getattr(self.logger, name)
+        return getattr(object.__getattribute__(self, 'logger'), name)
 
     def __setattr__(self, name, value):
-        setattr(self.logger, name, value)
+        setattr(object.__getattribute__(self, 'logger'), name, value)
 
     def __delattr__(self, name):
-        delattr(self.logger, name)
+        delattr(object.__getattribute__(self, 'logger'), name)
