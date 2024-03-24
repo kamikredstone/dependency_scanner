@@ -31,6 +31,9 @@ class SingletonLogger:
         delattr(object.__getattribute__(self, 'logger'), name)
 
 def detect_programming_language(filename: str) -> str:
+    """
+    This function detects the programming language of the manifest file based on the file name.
+    """
     # Mapping of file names to programming languages
     language_mapping = {
         'requirements.txt': 'python',
@@ -43,7 +46,19 @@ def detect_programming_language(filename: str) -> str:
     return 'unknown'  # Default if no match is found
 
 
-async def handle_file_submission(request: Request = None) -> tuple[str, bytes]:
+async def handle_file_submission(request: Request = None) -> tuple[str, dict[str, str]]:
+    """
+    This function handles the file submission request and returns the key and content.
+
+    Args:
+        request (Request): The request object containing the file or data.
+
+    Returns:
+        tuple[str, dict[str, str]]: A tuple containing the key as UUID identifier,
+            and a dictionary with the key representing the programming language 
+            and content of the manifest file as the value.
+
+    """
     logger = SingletonLogger()
     form_data: FormData = await request.form()
     file: UploadFile = form_data.get("file")

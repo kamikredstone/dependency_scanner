@@ -1,14 +1,15 @@
 from src.parser import Parser
 from src.utils import SingletonLogger
 import requirements
-from httpx import HTTPStatusError, TimeoutException
+import re
+from httpx import HTTPStatusError, TimeoutException, AsyncClient
 
 class PythonParser(Parser):
 
     cache = {}
 
     @staticmethod
-    def parse_dependencies(data: str):
+    def parse_dependencies(data: str) -> list:
         """
         Parses the requirements file and returns a list of dependencies
         """
@@ -35,7 +36,7 @@ class PythonParser(Parser):
         if cache_key in cls.cache:
             return cls.cache[cache_key]
         try:
-            async with httpx.AsyncClient() as client:
+            async with AsyncClient() as client:
                 response = await client.get(url, timeout=5.0) # Timeout set to 5 seconds
                 response.raise_for_status()
                 cls.cache[cache_key] = response.json()
@@ -58,12 +59,16 @@ class PythonParser(Parser):
         if dependencies:
             tree[package_name] = {"version": package_version, "dependencies": {}}
             for dep in dependencies:
-                # Simple split to obtain package name and version; may need refinement
+                # Simple split to obtain package name and version - will need refinement in the future
                 dep_name_version = dep.split(';')[0].strip()  # Simplistic split; ignores environment markers
-                parts = dep_name_version.replace(" ", "").split("==")
-                if len(parts) == 2:
-                    dep_name, dep_version = parts
-                    await cls.build_dependency_tree(dep_name, dep_version, tree[package_name]["dependencies"])
+                match = re.match(r"(?P<name>[\w\d\.-]+)\s*(?P<specifier>[<>=!~]*=?)\s*(?P<version>[\w\d\.-]+)?", dep_name_version)
+                if match:
+                    dep_name = match.group("name")
+                    dep_version = match.group("version")
+                    dep_specifier = match.group("specifier")
+                    # Only processing '==' specifier for now for simplicity
+                    if dep_version and dep_specifier == "==":
+                        await cls.build_dependency_tree(dep_name, dep_version, tree[package_name]["dependencies"])
         else:
             tree[package_name] = {"version": package_version, "dependencies": None}
 
