@@ -1,5 +1,6 @@
 import redis
 import logging, sys
+from src import REDIS_CONSTS
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

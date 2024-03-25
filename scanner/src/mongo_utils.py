@@ -20,7 +20,7 @@ def process_and_save_message(key: str, value: str, collection):
     """
     # The value is the string we get from redis, which is a JSON string
     value_dict = json.loads(value)
-    data = {key: value_dict}
+    data = {}
 
     # Check the key in the JSON and call the correct parser
     for lang, dependencies in value_dict.items():
