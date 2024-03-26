@@ -3,6 +3,8 @@ import json
 from src.utils import SingletonLogger
 from src import REDIS_CONSTS
 
+logger = SingletonLogger()
+
 async def publish_to_redis(redis_connection_pool, stream, key, content: dict):
     try:
         r = redis.Redis(connection_pool=redis_connection_pool)
@@ -27,18 +29,26 @@ async def get_redis(host: str, port: int, password: str = None) -> redis.Connect
         pool = redis.ConnectionPool(host=host, port=port, db=0)
     return pool
 
+def pull_job_from_stream(redis_connection, stream, group, consumer, count=1, block=1000):
+    try:
+        return redis_connection.xreadgroup(group, consumer, {stream: ">"}, count=count, block=block)
+    except Exception as e:
+        raise e
+
 def initialize_stream(redis_connection, stream_name):
-    logger = SingletonLogger()
     try:
         latest_entry = redis_connection.xrevrange(stream_name, max='+', min='-', count=1)
         if not latest_entry:
             # Stream is empty or does not exist, safe to add initialization message
             redis_connection.xadd(stream_name, {'init': 'true'})
             logger.info("Stream initialized with dummy message.")
-            latest_entry = redis_connection.xreadgroup(REDIS_CONSTS['REDIS_GROUP_NAME'], 'producer', {REDIS_CONSTS['REDIS_STREAM_NAME']: ">"}, count=1, block=1000)
-            logger.info(f"Dummy message from group is: {latest_entry}")
-            redis_connection.xack(stream_name, REDIS_CONSTS['REDIS_GROUP_NAME'], latest_entry[0])
-            logger.info("Dummy message acknowledged.")
+            messages = pull_job_from_stream(redis_connection, stream_name, REDIS_CONSTS['REDIS_GROUP_NAME'], REDIS_CONSTS['REDIS_CONSUMER_NAME'])
+            logger.info(f"The message retrieved is: {messages}.")
+            for msg in messages:
+                stream, message_data = msg
+                message_id = message_data[0][0]
+                redis_connection.xack(stream_name, REDIS_CONSTS['REDIS_GROUP_NAME'], message_id)
+                logger.info(f"Acknowledged initialization message with data: {message_data} in stream {stream}")
     except redis.exceptions.RedisError as e:
         logger.error(f"Error checking or initializing stream: {e}")
         raise e

@@ -1,13 +1,8 @@
 import redis
-import logging, sys
 from src import REDIS_CONSTS
+from src.utils import SingletonLogger
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-handler = logging.StreamHandler(sys.stdout)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+logger = SingletonLogger()
 
 def get_redis(host: str, port: int, password: str = None) -> redis.ConnectionPool:
     if password:
